@@ -1,6 +1,6 @@
 
 module "ecs-appv1" {
-  source = "../../../modules/ecs/"
+  source = "../"
 
   #myapp task definition
   app_name       = var.myapp_1.app_name

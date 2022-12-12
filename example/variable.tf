@@ -1,16 +1,16 @@
 
-variable "myapp_1" {
-  type = object({
-    aws_region = string
-    app_name       = string
-    app_image      = string
-    container_port = number
-    tg_hc_path = string
-    domain_name = string
-    ecs_clustername = string
-    desired_count = number
-  })
-}
+# variable "myapp_1" {
+#   type = object({
+#     aws_region = string
+#     app_name       = string
+#     app_image      = string
+#     container_port = number
+#     tg_hc_path = string
+#     domain_name = string
+#     ecs_clustername = string
+#     desired_count = number
+#   })
+# }
 
 
 

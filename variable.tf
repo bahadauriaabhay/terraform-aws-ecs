@@ -1,24 +1,29 @@
 
-variable "app_name" {
-  type = string
-}
-variable "app_image" {
-  type = string
-}
 
-variable "cpu" {
-  type = number
-  default = 512
-}
-variable "memory" {
-  type = number
-  default = 512
-}
-variable "essential" {
-  type = bool
-  default = true
-}
 
+variable "myapp_1" {
+#   type = object({
+#     aws_region = string
+#     app_name       = string
+#     app_image      = string
+#     container_port = number
+#     tg_hc_path = string
+#     domain_name = string
+#     ecs_clustername = string
+#     desired_count = number
+#   })
+# }
+
+variable "container_definition" {
+  type = list(object({
+    name = string
+    image  = string
+    cpu  = string
+    memory = number
+    essential = string
+    portMappings = list()
+  }))
+}
 variable "networkMode" {
   type = string
   default = "bridge"
@@ -132,4 +137,57 @@ variable "alb_action_type" {
 variable "domain_name" {
   type = string
   
+}
+
+variable "name" {
+    default = "demo1"
+}
+variable "asg_max" {
+    default = 3
+}
+variable "asg_min" {
+    default = 1
+}
+variable "health_check_type" {
+    default = "ELB"
+}
+variable "desired_capacity" {
+    default = 1
+}
+variable "force_delete" {
+    default = "true"
+}
+variable "instance_types" {
+    default = "t2.micro"
+}
+variable "asg_sg" { 
+}
+
+variable "vpc_zone_id" {
+    default = []
+}
+variable "health_check_grace_period" { 
+    default = 300
+}
+variable "image_id" {
+    default = "ami-0fe77b349d804e9e6"
+}
+
+variable "vpc_cidr" {
+
+}
+
+variable "name" {
+  
+}
+variable "from_port" {
+    default = "80"
+}
+variable "to_port" {
+    default = "80"
+}
+
+
+variable "sg_vpc_id" {
+
 }
