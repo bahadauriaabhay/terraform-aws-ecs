@@ -74,9 +74,9 @@ EOF
     create_before_destroy = true
   }
 }
-output "asg_arn" {
-  value = aws_autoscaling_group.asg.arn
-}
+#output "asg_arn" {
+#  value = aws_autoscaling_group.asg.arn
+#}
 
 resource "aws_iam_role" "ecs-instance-role" {
     name                = "ecs-instance-role"

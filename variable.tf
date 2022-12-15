@@ -18,14 +18,14 @@ variable "ecs_clustername" {
 # }
 
 variable "container_definition" {
- # type = list(object({
-    name = "app-${var.name}"
-    image  = "895249166333.dkr.ecr.us-east-1.amazonaws.com/myimages:57"
-    cpu  = "512"
-    memory = "736"
-    essential = "true"
-    portMappings = list(containerPort=80,hostPort=80)
- # }))
+  type = list(object({
+    name = string
+    image  = string
+    cpu  = string
+    memory = number
+    essential = string
+  #  portMappings = list()
+  }))
 }
 variable "networkMode" {
   type = string
@@ -155,9 +155,9 @@ variable "alb_action_type" {
 variable "name" {
     default = "demo1"
 }
-variable "asg_arn" {
-  default = aws_autoscaling_group.asg.arn
-}
+#variable "asg_arn" {
+#   default = aws_autoscaling_group.asg.arn
+#}
 variable "asg_max" {
     default = 3
 }
@@ -211,15 +211,6 @@ variable "to_port" {
 #  #default = "aws_alb_target_group.ecs-target-group.id"
 #}
 
-variable "fargate_only" {
-  default = "false"
-  description = "create forgate only provider"
-}
-
-variable "launch_type" {
-  default     = "EC2"
-  description = "The launch type on which to run your service. The valid values are EC2 and FARGATE. Defaults to EC2."
-}
 
 variable "network_mode" {
   default     = null
