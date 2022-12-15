@@ -2,23 +2,23 @@ terraform {
   required_version = ">=0.12"
 }
 
-data "template_file" "myapp-task-definition-template" {
-  template = file("../../../templates/ecs/app1.json.tpl")
-  for_each  = var.container_definitions
-  vars = {
-    name          = var.app_name
-    image         = var.app_image
-    cpu           = var.cpu
-    memory        = var.memory
-    essential   =    var.essential
-    networkMode = var.networkMode
-    containerPort = var.container_port
-    hostPort      = var.host_port
-  }
-}
+#data "template_file" "myapp-task-definition-template" {
+#  template = file("../../../templates/ecs/app1.json.tpl")
+#  for_each  = var.
+#  vars = {
+#    name          = var.app_name
+#    image         = var.app_image
+#    cpu           = var.cpu
+#    memory        = var.memory
+#    essential   =    var.essential
+#    networkMode = var.networkMode
+#    containerPort = var.container_port
+#    hostPort      = var.host_port
+#  }
+#}
  
 resource "aws_ecs_task_definition" "myapp" {
-  family = var.app_name
+  family = "aws_ecs_service-${var.name}"
   requires_compatibilities = [var.launch_type]
   network_mode = var.launch_type == "FARGATE" ? "awsvpc" : var.network_mode
   cpu          = var.launch_type == "FARGATE" ? var.container_cpu : null
@@ -93,21 +93,19 @@ resource "aws_ecs_task_definition" "myapp" {
 #
 #
 
-data "aws_ecs_cluster" "my-ecs-cluster" {
-  cluster_name = var.ecs_clustername
-}
+
 
 resource "aws_ecs_service" "myapp-service" {
-  name            = var.app_name
+  name            = "aws_ecs_service-${var.name}"
  	iam_role        = var.launch_type == "FARGATE" ? null : aws_iam_role.ecs-service-role.arn
 
-  cluster         = data.aws_ecs_cluster.my-ecs-cluster.id
-  task_definition = aws_ecs_task_definition.myapp.arn
+  cluster         = aws_ecs_cluster.mycluster[0].id
+  task_definition = aws_ecs_task_definition.myapp[value.name].arn
   desired_count   = var.desired_count
 
   load_balancer {
     target_group_arn = aws_alb_target_group.ecs-target-group.id
-    container_name   = var.app_name
+    container_name   = "app-${var.name}"
     container_port   = var.container_port
   }
 }

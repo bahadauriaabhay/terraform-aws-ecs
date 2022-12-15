@@ -6,8 +6,12 @@ resource "aws_ecs_cluster" "mycluster" {
     value = "enabled"
   }
 }
+data "aws_ecs_cluster" "my-ecs-cluster" {
+  count = var.enable_ecs_cluster ? 0 : 1
+  cluster_name = var.ecs_clustername
+}
 resource "aws_ecs_cluster_capacity_providers" "ecs_capacity_providers" {
-  cluster_name = aws_ecs_cluster.mycluster.name
+  cluster_name = var.enable_ecs_cluster ? aws_ecs_cluster.mycluster[0].id : data.aws_ecs_cluster.my-ecs-cluster[0].id #aws_ecs_cluster.mycluster[0].name
   capacity_providers = compact([
     try(aws_ecs_capacity_provider.ecs_capacity_provider[0].name, ""),
     "FARGATE",
@@ -18,11 +22,12 @@ resource "aws_ecs_capacity_provider" "ecs_capacity_provider" {
   name = "provider-${var.name}"
   count = var.fargate_only ? 0 : 1
   auto_scaling_group_provider {
-    auto_scaling_group_arn = var.asg_arn
+    auto_scaling_group_arn = aws_autoscaling_group.asg[0].arn #var.asg_arn
   }
 }
 
 resource "aws_autoscaling_group" "asg" {
+  count                     = var.fargate_only ? 0 : 1
   name                      = var.name
   max_size                  = var.asg_max
   min_size                  = var.asg_min
@@ -30,37 +35,17 @@ resource "aws_autoscaling_group" "asg" {
   health_check_type         = var.health_check_type
   desired_capacity          = var.desired_capacity
   force_delete              = var.force_delete
-  launch_configuration      = aws_launch_configuration.as_conf.name
+  launch_configuration      = aws_launch_configuration.as_conf[0].name
   vpc_zone_identifier       = var.vpc_zone_id
 }
 
 
-resource "aws_security_group" "aws_sg" {
-  name        = "aws_sg-${var.name}"
-  description = "Allow TLS inbound traffic"
-  vpc_id      = var.vpc_id
-
-  ingress {
-    description      = "TLS from VPC"
-    from_port        = var.from_port
-    to_port          = var.to_port
-    protocol         = "tcp"
-    cidr_blocks      = var.vpc_cidr
-  }
-
-  egress {
-    from_port        = 0
-    to_port          = 0
-    protocol         = "-1"
-    cidr_blocks      = ["0.0.0.0/0"]
-  }
-}
-
 resource "aws_launch_configuration" "as_conf" {
+  count         = var.fargate_only ? 0 : 1
   image_id      = var.image_id
   instance_type = "${var.instance_types}"
 #  associate_public_ip_address = true
-  security_groups = [aws_security_group.aws_sg.id]
+  security_groups = [aws_security_group.aws_sg[0].id]
   user_data = <<EOF
 #!/bin/bash
 echo ECS_CLUSTER=${var.ecs_clustername} >> /etc/ecs/ecs.config;echo ECS_BACKEND_HOST= >> /etc/ecs/ecs.config;

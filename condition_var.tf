@@ -12,7 +12,16 @@ variable "enable_asg_sg" {
   type=string
   default= true
 }
+
+variable "enable_asg_sgALB" {
+  type=string
+  default= true
+}
 variable "enable_alb" {
+  type=string
+  default= true
+}
+variable "enable_alb_listener" {
   type=string
   default= true
 }
@@ -22,5 +31,5 @@ variable "launch_type" {
 }
 variable "fargate_only" {
   default = "true"
-  description = "create forgate only provider if launch_type=EC2 then fargate_only=true (will create fargate resource ,if launch_type=FARGATE then fargate_only=false )  "
+  description = "create forgate only provider if launch_type=EC2 then fargate_only=false(will create fargate resource ,if launch_type=FARGATE then fargate_only=true )  "
 }

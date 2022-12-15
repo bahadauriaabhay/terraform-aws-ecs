@@ -17,24 +17,61 @@ variable "ecs_clustername" {
 #   })
 # }
 
-variable "container_definition" {
-  type = list(object({
+variable "container_definitions" {
+  type = map(object({
     name = string
     image  = string
-    cpu  = string
+    cpu  = number
     memory = number
-    essential = string
-  #  portMappings = list()
+    essential = bool
+    portMappings = map(object({
+      containerPort = number
+      hostPort      = number
+    }))
   }))
+  default = {
+    "key" = {
+      cpu = "512"
+      essential = "true"
+      image = "nginx"
+      memory = "512"
+      name = "app-demo1"
+      portMappings = {
+        "key" = {
+          containerPort = 80
+          hostPort = 80
+        }
+      }
+    }
+  }
+  #default = [ {
+  #  cpu = "512"
+  #  essential = "true"
+  #  image = "nginx"
+  #  memory = "512"
+  #  name = "app-demo1"
+  #  portMappings = [{containerPort = "80" , hostPort = "80"}]
+  #} ]
 }
-variable "networkMode" {
-  type = string
-  default = "bridge"
-}
+
+
+
+#variable "networkMode" {
+#  type = string
+#  default = "bridge"
+#}
 
 variable "container_port" {
   type = number
   default = 80
+}
+variable "container_cpu" {
+  type = number
+  default = 100
+}
+variable "container_memory" {
+  type = number
+  default = 512
 }
 
 variable "host_port" {
@@ -45,7 +82,7 @@ variable "host_port" {
 #alb variables
 variable "alb_name" {
   type = string
-  default = "my-alb" 
+  default = "" 
 }
 #variable "alb" {
 #  default = true
@@ -67,10 +104,7 @@ variable "tg_port" {
   default = 80
 }
 
-variable "vpc_id" {
-  type = string
-  default = "vpc-04f38cbe913c1555d" 
-}
+
 
 variable "tg_protocol" {
   type = string
@@ -153,7 +187,7 @@ variable "alb_action_type" {
 #}
 
 variable "name" {
-    default = "demo1"
+   default = "demo1"
 }
 #variable "asg_arn" {
 #   default = aws_autoscaling_group.asg.arn
@@ -190,7 +224,7 @@ variable "image_id" {
 }
 
 variable "vpc_cidr" {
-  default = "10.0.0.0/16"
+  default = ["10.0.0.0/16"]
 }
 
 #variable "name" {
@@ -215,4 +249,54 @@ variable "to_port" {
 variable "network_mode" {
   default     = null
   description = "The Docker networking mode to use for the containers in the task. The valid values are none, bridge, awsvpc, and host. (REQUIRED IF 'LAUCH_TYPE' IS FARGATE)"
+}
+
+variable "autoscaling_cpu" {
+  default     = false
+  description = "Enables autoscaling based on average CPU tracking"
+}
+
+variable "autoscaling_memory" {
+  default     = false
+  description = "Enables autoscaling based on average Memory tracking"
+}
+
+variable "autoscaling_max" {
+  default     = 3
+  description = "Max number of containers to scale with autoscaling"
+}
+
+variable "autoscaling_min" {
+  default     = 1
+  description = "Min number of containers to scale with autoscaling"
+}
+
+variable "autoscaling_target_cpu" {
+  default     = 50
+  description = "Target average CPU percentage to track for autoscaling"
+}
+
+variable "autoscaling_target_memory" {
+  default     = 90
+  description = "Target average Memory percentage to track for autoscaling"
+}
+
+variable "autoscaling_scale_in_cooldown" {
+  default     = 300
+  description = "Cooldown in seconds to wait between scale in events"
+}
+
+variable "autoscaling_scale_out_cooldown" {
+  default     = 300
+  description = "Cooldown in seconds to wait between scale out events"
+}
+variable "sgALB" {
+  default = ""
+}
+variable "public_sub" {
+  default = ""
+}
+variable "vpc_id" {
+  type = string
+  default = "vpc-04f38cbe913c1555d" 
 }
