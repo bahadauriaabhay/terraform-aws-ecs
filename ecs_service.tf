@@ -19,23 +19,29 @@ data "template_file" "myapp-task-definition-template" {
  
 resource "aws_ecs_task_definition" "myapp" {
   family = var.app_name
+  requires_compatibilities = [var.launch_type]
+  network_mode = var.launch_type == "FARGATE" ? "awsvpc" : var.network_mode
+  cpu          = var.launch_type == "FARGATE" ? var.container_cpu : null
+  memory       = var.launch_type == "FARGATE" ? var.container_memory : null
   for_each  = var.container_definitions
     container_definitions = jsonencode([
     {
-      name      = each.value['name']
-      image     = each.value['image']
-      cpu       = each.value['cpu']
-      memory    = each.value['memory']
-      essential = each.value['essential']
+      name      = each.value["name"]
+      image     = each.value["image"]
+      cpu       = each.value["cpu"]
+      memory    = each.value["memory"]
+      essential = each.value["essential"]
       portMappings = [
         {
-          containerPort = 0
-          hostPort      = 80
+          containerPort = 80
+          hostPort      = 0
         }
       ]
     }
-  ]
+  ])
 }
+
+
   /*container_definitions = jsonencode([
     {
       name        = var.app_name
@@ -56,35 +62,36 @@ resource "aws_ecs_task_definition" "myapp" {
   ])*/
 
 
-data "aws_lb" "selected" {
-  name = var.alb_name
-}
-
-data "aws_lb_listener" "selected80" {
-  load_balancer_arn = data.aws_lb.selected.arn
-  port              = 80
-}
-
-
-
-resource "aws_alb_target_group" "ecs-target-group" {
-  name        = var.app_name
-  port        = var.tg_port
-  protocol    = var.tg_protocol
-  vpc_id      = var.vpc_id
-  target_type = var.tg_type
-
-  health_check {
-    healthy_threshold   = var.tg_healthy_threshold
-    interval            = var.tg_hc_interval
-    protocol            = var.tg_hc_protocol
-    matcher             = var.tg_hc_matcher
-    timeout             = var.tg_hc_timeout
-    path                = var.tg_hc_path
-    unhealthy_threshold = var.tg_unhealthy_threshold
-  }
-}
-
+#data "aws_lb" "selected" {
+#  name = var.alb_name
+#}
+#
+#data "aws_lb_listener" "selected80" {
+#  load_balancer_arn = data.aws_lb.selected.arn
+#  port              = 80
+#}
+#
+#
+#
+#resource "aws_alb_target_group" "ecs-target-group" {
+#  name        = var.app_name
+#  port        = var.tg_port
+#  protocol    = var.tg_protocol
+#  vpc_id      = var.vpc_id
+#  target_type = var.tg_type
+#
+#  health_check {
+#    healthy_threshold   = var.tg_healthy_threshold
+#    interval            = var.tg_hc_interval
+#    protocol            = var.tg_hc_protocol
+#    matcher             = var.tg_hc_matcher
+#    timeout             = var.tg_hc_timeout
+#    path                = var.tg_hc_path
+#    unhealthy_threshold = var.tg_unhealthy_threshold
+#  }
+#}
+#
+#
 
 data "aws_ecs_cluster" "my-ecs-cluster" {
   cluster_name = var.ecs_clustername
@@ -92,6 +99,8 @@ data "aws_ecs_cluster" "my-ecs-cluster" {
 
 resource "aws_ecs_service" "myapp-service" {
   name            = var.app_name
+ 	iam_role        = var.launch_type == "FARGATE" ? null : aws_iam_role.ecs-service-role.arn
+
   cluster         = data.aws_ecs_cluster.my-ecs-cluster.id
   task_definition = aws_ecs_task_definition.myapp.arn
   desired_count   = var.desired_count
@@ -101,17 +110,13 @@ resource "aws_ecs_service" "myapp-service" {
     container_name   = var.app_name
     container_port   = var.container_port
   }
-
-
 }
-
-
 
 resource "aws_appautoscaling_target" "ecs" {
   count              = var.autoscaling_cpu || var.autoscaling_memory ? 1 : 0
   max_capacity       = var.autoscaling_max
   min_capacity       = var.autoscaling_min
-  resource_id        = "service/${var.name}/${aws_ecs_service.ecs-service.name}"
+  resource_id        = "service/${var.name}/${aws_ecs_service.myapp-service.name}"
   scalable_dimension = "ecs:service:DesiredCount"
   service_namespace  = "ecs"
 }

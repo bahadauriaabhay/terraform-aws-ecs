@@ -12,3 +12,7 @@ variable "enable_asg_sg" {
   type=string
   default= true
 }
+variable "enable_alb" {
+  type=string
+  default= true
+}

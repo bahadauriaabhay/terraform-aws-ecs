@@ -1,7 +1,10 @@
+variable "ecs_clustername" {
+  description = "Name of this ECS cluster."
+  default = "ecs_clustername"
+}
 
 
-
-variable "myapp_1" {
+#variable "myapp_1" {
 #   type = object({
 #     aws_region = string
 #     app_name       = string
@@ -15,14 +18,14 @@ variable "myapp_1" {
 # }
 
 variable "container_definition" {
-  type = list(object({
-    name = string
-    image  = string
-    cpu  = string
-    memory = number
-    essential = string
-    portMappings = list()
-  }))
+ # type = list(object({
+    name = "app-${var.name}"
+    image  = "895249166333.dkr.ecr.us-east-1.amazonaws.com/myimages:57"
+    cpu  = "512"
+    memory = "736"
+    essential = "true"
+    portMappings = list(containerPort=80,hostPort=80)
+ # }))
 }
 variable "networkMode" {
   type = string
@@ -31,6 +34,7 @@ variable "networkMode" {
 
 variable "container_port" {
   type = number
+  default = 80
 }
 
 variable "host_port" {
@@ -42,6 +46,14 @@ variable "host_port" {
 variable "alb_name" {
   type = string
   default = "my-alb" 
+}
+#variable "alb" {
+#  default = true
+#  description = "Create an ALB"
+#}
+variable "alb_arn" {
+  description = "Use alb provided"
+  default = "example"
 }
 
 /*
@@ -98,6 +110,7 @@ variable "tg_hc_timeout" {
 
 variable "tg_hc_path" {
   type = string
+  default = "/"
 }
 
 variable "tg_unhealthy_threshold" {
@@ -107,9 +120,9 @@ variable "tg_unhealthy_threshold" {
 
 
 #ecs cluster variables
-variable "ecs_clustername" {
-  type = string
-}
+#variable "ecs_clustername" {
+#  type = string
+#}
 
 variable "desired_count" {
   type    = number
@@ -134,13 +147,16 @@ variable "alb_action_type" {
   default = "forward"
 }
 
-variable "domain_name" {
-  type = string
-  
-}
+#variable "domain_name" {
+#  type = string
+#  
+#}
 
 variable "name" {
     default = "demo1"
+}
+variable "asg_arn" {
+  default = aws_autoscaling_group.asg.arn
 }
 variable "asg_max" {
     default = 3
@@ -160,8 +176,8 @@ variable "force_delete" {
 variable "instance_types" {
     default = "t2.micro"
 }
-variable "asg_sg" { 
-}
+#variable "asg_sg" { 
+#}
 
 variable "vpc_zone_id" {
     default = []
@@ -174,12 +190,12 @@ variable "image_id" {
 }
 
 variable "vpc_cidr" {
-
+  default = "10.0.0.0/16"
 }
 
-variable "name" {
-  
-}
+#variable "name" {
+#  
+#}
 variable "from_port" {
     default = "80"
 }
@@ -188,6 +204,24 @@ variable "to_port" {
 }
 
 
-variable "sg_vpc_id" {
+#variable "sg_vpc_id" {
+#
+#}
+#variable "target_group_arn" {
+#  #default = "aws_alb_target_group.ecs-target-group.id"
+#}
 
+variable "fargate_only" {
+  default = "false"
+  description = "create forgate only provider"
+}
+
+variable "launch_type" {
+  default     = "EC2"
+  description = "The launch type on which to run your service. The valid values are EC2 and FARGATE. Defaults to EC2."
+}
+
+variable "network_mode" {
+  default     = null
+  description = "The Docker networking mode to use for the containers in the task. The valid values are none, bridge, awsvpc, and host. (REQUIRED IF 'LAUCH_TYPE' IS FARGATE)"
 }

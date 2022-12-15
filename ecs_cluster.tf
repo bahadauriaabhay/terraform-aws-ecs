@@ -1,11 +1,27 @@
 resource "aws_ecs_cluster" "mycluster" {
-  count = var.enable_ecs_cluster ? 1 : 0  
+  count = var.enable_ecs_cluster ? 1 : 0
   name = var.ecs_clustername
   setting {
     name  = "containerInsights"
     value = "enabled"
   }
 }
+resource "aws_ecs_cluster_capacity_providers" "ecs_capacity_providers" {
+  cluster_name = aws_ecs_cluster.mycluster.name
+  capacity_providers = compact([
+    try(aws_ecs_capacity_provider.ecs_capacity_provider[0].name, ""),
+    "FARGATE",
+    "FARGATE_SPOT"
+  ])
+}
+resource "aws_ecs_capacity_provider" "ecs_capacity_provider" {
+  name = "provider-${var.name}"
+  count = var.fargate_only ? 0 : 1
+  auto_scaling_group_provider {
+    auto_scaling_group_arn = var.asg_arn
+  }
+}
+
 resource "aws_autoscaling_group" "asg" {
   name                      = var.name
   max_size                  = var.asg_max
@@ -18,10 +34,11 @@ resource "aws_autoscaling_group" "asg" {
   vpc_zone_identifier       = var.vpc_zone_id
 }
 
+
 resource "aws_security_group" "aws_sg" {
   name        = "aws_sg-${var.name}"
   description = "Allow TLS inbound traffic"
-  vpc_id      = var.sg_vpc_id
+  vpc_id      = var.vpc_id
 
   ingress {
     description      = "TLS from VPC"
@@ -38,11 +55,12 @@ resource "aws_security_group" "aws_sg" {
     cidr_blocks      = ["0.0.0.0/0"]
   }
 }
+
 resource "aws_launch_configuration" "as_conf" {
   image_id      = var.image_id
   instance_type = "${var.instance_types}"
 #  associate_public_ip_address = true
-  security_groups = [aws_autoscaling_group.asg.id]
+  security_groups = [aws_security_group.aws_sg.id]
   user_data = <<EOF
 #!/bin/bash
 echo ECS_CLUSTER=${var.ecs_clustername} >> /etc/ecs/ecs.config;echo ECS_BACKEND_HOST= >> /etc/ecs/ecs.config;
