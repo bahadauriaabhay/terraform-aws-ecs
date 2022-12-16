@@ -1,31 +1,31 @@
 resource "aws_lb" "selected" {
-  name = var.alb_name
-  count  = var.enable_alb ? 1 : 0
-  security_groups    = var.enable_asg_sgALB ? aws_security_group.aws_sgALB[0].id : var.sgALB
-  subnets            = var.public_sub
+  name            = var.alb_name
+  count           = var.enable_alb ? 1 : 0
+  security_groups = var.enable_asg_sgALB ? [aws_security_group.aws_sgALB[count.index].id] : var.sgALB
+  subnets         = var.public_sub
 }
 
 resource "aws_lb_listener" "selected80" {
-  count  = var.enable_alb_listener ? 1 : 0
-  load_balancer_arn = var.enable_alb ? aws_lb.selected[0].arn : data.aws_lb.selected[0].arn 
+  count             = var.enable_alb_listener ? 1 : 0
+  load_balancer_arn = var.enable_alb ? aws_lb.selected[count.index].arn : data.aws_lb.selected[count.index].arn
   port              = 80
-  protocol              = "HTTP"
+  protocol          = "HTTP"
   default_action {
-    type                = "forward"
-    target_group_arn    = var.enable_alb ? aws_lb.selected[0].arn : data.aws_lb.selected[0].arn
+    type             = "forward"
+    target_group_arn = var.enable_alb ? aws_lb.selected[count.index].arn : data.aws_lb.selected[count.index].arn
   }
 }
 
 data "aws_lb" "selected" {
-  name = var.alb_name
-  count  = var.enable_alb ? 0 : 1
+  name  = var.alb_name
+  count = var.enable_alb ? 0 : 1
 }
 
 data "aws_lb_listener" "selected80" {
-  count  = var.enable_alb_listener ? 0 : 1
-  load_balancer_arn = data.aws_lb.selected[0].arn
+  count             = var.enable_alb_listener ? 0 : 1
+  load_balancer_arn = data.aws_lb.selected[count.index].arn
   port              = 80
-  
+
 }
 #resource "aws_lb_listener_rule" "static" {
 #  listener_arn = data.aws_lb_listener.selected80.arn

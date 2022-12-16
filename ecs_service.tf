@@ -1,5 +1,9 @@
 terraform {
   required_version = ">=0.12"
+
+  # tags {
+    
+  # }
 }
 
 #data "template_file" "myapp-task-definition-template" {
@@ -16,15 +20,15 @@ terraform {
 #    hostPort      = var.host_port
 #  }
 #}
- 
+
 resource "aws_ecs_task_definition" "myapp" {
-  family = "aws_ecs_service-${var.name}"
+  family                   = "aws_ecs_service-${var.name}"
   requires_compatibilities = [var.launch_type]
-  network_mode = var.launch_type == "FARGATE" ? "awsvpc" : var.network_mode
-  cpu          = var.launch_type == "FARGATE" ? var.container_cpu : null
-  memory       = var.launch_type == "FARGATE" ? var.container_memory : null
-  for_each  = var.container_definitions
-    container_definitions = jsonencode([
+  network_mode             = var.launch_type == "FARGATE" ? "awsvpc" : var.network_mode
+  cpu                      = var.launch_type == "FARGATE" ? var.container_cpu : null
+  memory                   = var.launch_type == "FARGATE" ? var.container_memory : null
+  for_each                 = var.container_definitions
+  container_definitions = jsonencode([
     {
       name      = each.value["name"]
       image     = each.value["image"]
@@ -39,10 +43,27 @@ resource "aws_ecs_task_definition" "myapp" {
       ]
     }
   ])
+# container_definitions = jsonencode([
+#  {
+#    cpu       = 512
+#    essential = true
+#    image     = "nginx"
+#    memory    = 512
+#    name      = "app-demo1"
+#    portMappings = {
+#      
+#      containerPort = "80"
+#      hostPort      = "80"
+#     
+#    }
+#   
+#  
+#  }
+#])
 }
 
 
-  /*container_definitions = jsonencode([
+/*container_definitions = jsonencode([
     {
       name        = var.app_name
       image       = var.app_image
@@ -96,11 +117,12 @@ resource "aws_ecs_task_definition" "myapp" {
 
 
 resource "aws_ecs_service" "myapp-service" {
-  name            = "aws_ecs_service-${var.name}"
- 	iam_role        = var.launch_type == "FARGATE" ? null : aws_iam_role.ecs-service-role.arn
+  name     = "aws_ecs_service-${var.name}"
+  iam_role = var.launch_type == "FARGATE" ? null : aws_iam_role.ecs-service-role.arn
 
   cluster         = aws_ecs_cluster.mycluster[0].id
-  task_definition = aws_ecs_task_definition.myapp[value.name].arn
+  for_each        = aws_ecs_task_definition.myapp
+  task_definition = aws_ecs_task_definition.myapp[each.key].arn
   desired_count   = var.desired_count
 
   load_balancer {
@@ -111,10 +133,11 @@ resource "aws_ecs_service" "myapp-service" {
 }
 
 resource "aws_appautoscaling_target" "ecs" {
-  count              = var.autoscaling_cpu || var.autoscaling_memory ? 1 : 0
+  # count              = var.autoscaling_cpu || var.autoscaling_memory ? 1 : 0
   max_capacity       = var.autoscaling_max
   min_capacity       = var.autoscaling_min
-  resource_id        = "service/${var.name}/${aws_ecs_service.myapp-service.name}"
+  for_each           = aws_ecs_service.myapp-service
+  resource_id        = "service/${var.name}/${aws_ecs_service.myapp-service[each.key].name}"
   scalable_dimension = "ecs:service:DesiredCount"
   service_namespace  = "ecs"
 }

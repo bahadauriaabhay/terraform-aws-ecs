@@ -7,7 +7,8 @@
 #   portMappings = list(containerPort=80, hostPort=80)
 #}
 
-sgALB = 
-public_sub = 
-vpc_id = 
-alb_name =
+# sgALB = 
+# asg_sg =
+# public_sub = 
+# vpc_id = 
+# alb_name =

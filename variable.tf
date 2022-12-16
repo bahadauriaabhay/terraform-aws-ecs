@@ -1,6 +1,6 @@
 variable "ecs_clustername" {
   description = "Name of this ECS cluster."
-  default = "ecs_clustername"
+  default     = "ecs_clustername"
 }
 
 
@@ -19,10 +19,10 @@ variable "ecs_clustername" {
 
 variable "container_definitions" {
   type = map(object({
-    name = string
-    image  = string
-    cpu  = number
-    memory = number
+    name      = string
+    image     = string
+    cpu       = number
+    memory    = number
     essential = bool
     portMappings = map(object({
       containerPort = number
@@ -31,15 +31,15 @@ variable "container_definitions" {
   }))
   default = {
     "key" = {
-      cpu = "512"
+      cpu       = "512"
       essential = "true"
-      image = "nginx"
-      memory = "512"
-      name = "app-demo1"
+      image     = "nginx"
+      memory    = "512"
+      name      = "app-demo1"
       portMappings = {
         "key" = {
           containerPort = 80
-          hostPort = 80
+          hostPort      = 80
         }
       }
     }
@@ -62,27 +62,27 @@ variable "container_definitions" {
 #}
 
 variable "container_port" {
-  type = number
+  type    = number
   default = 80
 }
 variable "container_cpu" {
-  type = number
+  type    = number
   default = 100
 }
 variable "container_memory" {
-  type = number
+  type    = number
   default = 512
 }
 
 variable "host_port" {
-  type = number
+  type    = number
   default = 0
 }
 
 #alb variables
 variable "alb_name" {
-  type = string
-  default = "" 
+  type    = string
+  default = ""
 }
 #variable "alb" {
 #  default = true
@@ -90,7 +90,7 @@ variable "alb_name" {
 #}
 variable "alb_arn" {
   description = "Use alb provided"
-  default = "example"
+  default     = "example"
 }
 
 /*
@@ -100,55 +100,55 @@ variable "tg_name" {
 }
 */
 variable "tg_port" {
-  type = number
+  type    = number
   default = 80
 }
 
 
 
 variable "tg_protocol" {
-  type = string
+  type    = string
   default = "HTTP"
 }
 
 variable "tg_type" {
-  type = string
+  type    = string
   default = "instance"
 }
 
 variable "tg_healthy_threshold" {
-  type = number
+  type    = number
   default = 3
 }
 
 variable "tg_hc_interval" {
-  type = string
+  type    = string
   default = "30"
 }
 
 variable "tg_hc_protocol" {
-  type = string
+  type    = string
   default = "HTTP"
 }
 
 variable "tg_hc_matcher" {
-  type = string
+  type    = string
   default = "200"
 
 }
 
 variable "tg_hc_timeout" {
-  type = string
+  type    = string
   default = "3"
 }
 
 variable "tg_hc_path" {
-  type = string
+  type    = string
   default = "/"
 }
 
 variable "tg_unhealthy_threshold" {
-  type = string
+  type    = string
   default = "2"
 }
 
@@ -187,40 +187,40 @@ variable "alb_action_type" {
 #}
 
 variable "name" {
-   default = "demo1"
+  default = "demo1"
 }
 #variable "asg_arn" {
 #   default = aws_autoscaling_group.asg.arn
 #}
 variable "asg_max" {
-    default = 3
+  default = 3
 }
 variable "asg_min" {
-    default = 1
+  default = 1
 }
 variable "health_check_type" {
-    default = "ELB"
+  default = "ELB"
 }
 variable "desired_capacity" {
-    default = 1
+  default = 1
 }
 variable "force_delete" {
-    default = "true"
+  default = "true"
 }
 variable "instance_types" {
-    default = "t2.micro"
+  default = "t2.micro"
 }
 #variable "asg_sg" { 
 #}
 
 variable "vpc_zone_id" {
-    default = []
+  default = []
 }
-variable "health_check_grace_period" { 
-    default = 300
+variable "health_check_grace_period" {
+  default = 300
 }
 variable "image_id" {
-    default = "ami-0fe77b349d804e9e6"
+  default = "ami-0fe77b349d804e9e6"
 }
 
 variable "vpc_cidr" {
@@ -231,10 +231,10 @@ variable "vpc_cidr" {
 #  
 #}
 variable "from_port" {
-    default = "80"
+  default = "80"
 }
 variable "to_port" {
-    default = "80"
+  default = "80"
 }
 
 
@@ -291,12 +291,24 @@ variable "autoscaling_scale_out_cooldown" {
   description = "Cooldown in seconds to wait between scale out events"
 }
 variable "sgALB" {
-  default = ""
+    type    = tuple ([string, string])
+  default = ["example", "sample"]
 }
+variable "asg_sg" {
+  default = "example"
+}
+
 variable "public_sub" {
-  default = ""
+  type    = tuple ([string, string])
+  default = [""]
+  description = "paas two public subnet for ALB [subnet1, subnet2]"
 }
 variable "vpc_id" {
-  type = string
-  default = "vpc-04f38cbe913c1555d" 
+  type    = string
+  default = ""
+}
+variable "vpc_zone_id" {
+  type    = tuple ([string, string])
+  default = [""]
+  description = "paas two private subnet for auto scalling group [subnet1, subnet2]"
 }
